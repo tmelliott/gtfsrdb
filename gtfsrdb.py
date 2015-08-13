@@ -32,20 +32,20 @@ from urllib2 import urlopen
 from model import *
 
 p = OptionParser()
-p.add_option('-t', '--trip-updates', dest='tripUpdates', default=None, 
+p.add_option('-t', '--trip-updates', dest='tripUpdates', default=None,
              help='The trip updates URL', metavar='URL')
 
-p.add_option('-a', '--alerts', default=None, dest='alerts', 
+p.add_option('-a', '--alerts', default=None, dest='alerts',
              help='The alerts URL', metavar='URL')
 
-p.add_option('-p', '--vehicle-positions', dest='vehiclePositions', default=None, 
+p.add_option('-p', '--vehicle-positions', dest='vehiclePositions', default=None,
              help='The vehicle positions URL', metavar='URL')
 
 p.add_option('-d', '--database', default=None, dest='dsn',
              help='Database connection string', metavar='DSN')
 
-p.add_option('-o', '--discard-old', default=False, dest='deleteOld', 
-             action='store_true', 
+p.add_option('-o', '--discard-old', default=False, dest='deleteOld',
+             action='store_true',
              help='Dicard old updates, so the database is always current')
 
 p.add_option('-c', '--create-tables', default=False, dest='create',
@@ -54,7 +54,7 @@ p.add_option('-c', '--create-tables', default=False, dest='create',
 p.add_option('-w', '--wait', default=30, type='int', metavar='SECS',
              dest='timeout', help='Time to wait between requests (in seconds)')
 
-p.add_option('-v', '--verbose', default=False, dest='verbose', 
+p.add_option('-v', '--verbose', default=False, dest='verbose',
              action='store_true', help='Print generated SQL')
 
 p.add_option('-l', '--language', default='en', dest='lang', metavar='LANG',
@@ -81,7 +81,7 @@ if opts.tripUpdates == None:
 
 if opts.vehiclePositions == None:
     print 'Warning: no vehicle positions URL specified, proceeding without vehicle positions'
-    
+
 # Connect to the database
 engine = create_engine(opts.dsn, echo=opts.verbose)
 # sessionmaker returns a class
@@ -152,7 +152,7 @@ try:
                         trip_start_date = tu.trip.start_date,
 
                         # get the schedule relationship
-                        # This is somewhat undocumented, but by referencing the 
+                        # This is somewhat undocumented, but by referencing the
                         # DESCRIPTOR.enum_types_by_name, you get a dict of enum types
                         # as described at http://code.google.com/apis/protocolbuffers/docs/reference/python/google.protobuf.descriptor.EnumDescriptor-class.html
                         schedule_relationship = tu.trip.DESCRIPTOR.enum_types_by_name['ScheduleRelationship'].values_by_number[tu.trip.schedule_relationship].name,
@@ -240,11 +240,12 @@ try:
 
                     vp = entity.vehicle
 
+                    ## Instead of using the REQUEST timestamp, it seems more important to store the timestamp of the MEASUREMENT
                     dbvp = VehiclePosition(
                         trip_id = vp.trip.trip_id,
                         route_id = vp.trip.route_id,
                         trip_start_time = vp.trip.start_time,
-                        trip_start_date = vp.trip.start_date,                      
+                        trip_start_date = vp.trip.start_date,
                         vehicle_id = vp.vehicle.id,
                         vehicle_label = vp.vehicle.label,
                         vehicle_license_plate = vp.vehicle.license_plate,
@@ -252,8 +253,8 @@ try:
                         position_longitude = vp.position.longitude,
                         position_bearing = vp.position.bearing,
                         position_speed = vp.position.speed,
-                        timestamp = timestamp)
-                    
+                        timestamp = vp.timestamp)
+
                     session.add(dbvp)
 
             # This does deletes and adds, since it's atomic it never leaves us
@@ -265,9 +266,9 @@ try:
             print sys.exc_info()
 
 
-        # put this outside the try...except so it won't be skipped when something 
+        # put this outside the try...except so it won't be skipped when something
         # fails
-        # also, makes it easier to end the process with ctrl-c, b/c a 
+        # also, makes it easier to end the process with ctrl-c, b/c a
         # KeyboardInterrupt here will end the program (cleanly)
         if opts.once:
             print "Executed the load ONCE ... going to stop now..."

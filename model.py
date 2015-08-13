@@ -20,7 +20,7 @@
 # Matt Conway: main code
 
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Boolean, Float
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Boolean, Float, BigInteger
 from sqlalchemy.orm import relationship, backref
 
 Base = declarative_base()
@@ -65,7 +65,7 @@ class TripUpdate(Base):
     timestamp = Column(DateTime)
 
     StopTimeUpdates = relationship('StopTimeUpdate', backref='TripUpdate')
-    
+
 class StopTimeUpdate(Base):
     __tablename__ = 'stop_time_updates'
     oid = Column(Integer, primary_key=True)
@@ -89,7 +89,7 @@ class StopTimeUpdate(Base):
 
     # Link it to the TripUpdate
     trip_update_id = Column(Integer, ForeignKey('trip_updates.oid'))
-    
+
     # The .TripUpdate is done by the backref in TripUpdate
 
 class Alert(Base):
@@ -99,7 +99,7 @@ class Alert(Base):
 
     # Collapsed TimeRange
     start = Column(Integer)
-    end = Column(Integer)    
+    end = Column(Integer)
 
     # Add domain
     cause = Column(String(20))
@@ -138,12 +138,12 @@ class VehiclePosition(Base):
     route_id = Column(String(10))
     trip_start_time = Column(String(8))
     trip_start_date = Column(String(10))
- 
+
     # Collapsed VehicleDescriptor
     vehicle_id = Column(String(10))
     vehicle_label = Column(String(15))
     vehicle_license_plate = Column(String(10))
-    
+
     # Collapsed Position
     position_latitude = Column(Float)
     position_longitude = Column(Float)
@@ -151,8 +151,8 @@ class VehiclePosition(Base):
     position_speed = Column(Float)
 
     # moved from the header, and reformatted as datetime
-    timestamp = Column(DateTime)
-   
+    timestamp = Column(BigInteger)
+
 
 # So one can loop over all classes to clear them for a new load (-o option)
 AllClasses = (TripUpdate, StopTimeUpdate, Alert, EntitySelector, VehiclePosition)

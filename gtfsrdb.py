@@ -26,6 +26,7 @@ from optparse import OptionParser
 import time
 import sys
 import datetime
+import urllib2
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from urllib2 import urlopen
@@ -62,6 +63,9 @@ p.add_option('-l', '--language', default='en', dest='lang', metavar='LANG',
 
 p.add_option('-1', '--once',  default=False, dest='once', action='store_true',
              help='only run the loader one time')
+
+p.add_option('--accept', default=None, dest="accept",
+             help="Optional accept header")
 
 opts, args = p.parse_args()
 
@@ -223,8 +227,13 @@ try:
                             dbalert.InformedEntities.append(dbie)
             if opts.vehiclePositions:
                 fm = gtfs_realtime_pb2.FeedMessage()
+                if opts.accept:
+                    request = urllib2.Request(opts.vehiclePositions, headers={ "Accept" : opts.accept })
+                else:
+                    request = opts.vehiclePositions
+
                 fm.ParseFromString(
-                    urlopen(opts.vehiclePositions).read()
+                    urlopen(request).read()
                     )
 
                 # Convert this a Python object, and save it to be placed into each

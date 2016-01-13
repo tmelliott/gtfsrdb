@@ -1,18 +1,6 @@
 GTFSrDB - GTFS-realtime to Database
 ===================================
 
-### Changes
-
-This version differs from [the original](https://github.com/mattwigway/gtfsrdb) in the following:
-
-- the `timestamp` saved from vehicle positions' feeds is that from the vehicle itself, rather than the header (which is fairly arbitrary and I think knowing when the vehicle reported its last position is more important)
-
-- I've added an additional option, `--accept`, which allows you to specify specific accept headers in the request. For example, in the Auckland Transport GTFS feed, the default content type is `application/json`, which doesn't work with `gtfsrdb`. Instead, you need to specify the accept header `application/x-protobuf` to get the required format:
-```{bash}
-`gtfsrdb.py -p https://url/to/feed/ --accept="application/x-protobuf" -d sqlite:///test.db -c`
-```
-
-
 GTFSrDB loads GTFS-realtime data to a database.  
 
 GTFSrDB supports all 3 types of GTFS-realtime feeds:
@@ -29,10 +17,16 @@ with [gtfsdb](http://code.google.com/p/gtfsdb/).  GTFSrDB uses SQLAlchemy, so it
 most any database system; So far its been used with SQLite, Postgres, and Microsoft SQL Server.
 Just specify a database url on the command line with `-d`.
 
-### Changes from `mattwigway/gtfsrdb`
+##### Changes from `mattwigway/gtfsrdb`:
 
-- When saving vehicle positions, the `timestamp` is now the timestamp of the 'measurement', not the request (i.e., `feed.vehicle.timestamp` rather than `header.timestamp`.
+This version differs from [the original](https://github.com/mattwigway/gtfsrdb) in the following:
 
+- the `timestamp` saved from vehicle positions' feeds is that from the vehicle itself, rather than the header (which is fairly arbitrary and I think knowing when the vehicle reported its last position is more important)
+
+- I've added an additional option, `--accept`, which allows you to specify specific accept headers in the request. For example, in the Auckland Transport GTFS feed, the default content type is `application/json`, which doesn't work with `gtfsrdb`. Instead, you need to specify the accept header `application/x-protobuf` to get the required format:
+```{bash}
+$ gtfsrdb.py -p https://url/to/feed/ --accept="application/x-protobuf" -d sqlite:///test.db -c
+```
 
 ### Example Use
 

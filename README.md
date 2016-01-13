@@ -1,6 +1,18 @@
 GTFSrDB - GTFS-realtime to Database
 ===================================
 
+### Changes
+
+This version differs from [the original](https://github.com/mattwigway/gtfsrdb) in the following:
+
+- the `timestamp` saved from vehicle positions' feeds is that from the vehicle itself, rather than the header (which is fairly arbitrary and I think knowing when the vehicle reported its last position is more important)
+
+- I've added an additional option, `--accept`, which allows you to specify specific accept headers in the request. For example, in the Auckland Transport GTFS feed, the default content type is `application/json`, which doesn't work with `gtfsrdb`. Instead, you need to specify the accept header `application/x-protobuf` to get the required format:
+```{bash}
+`gtfsrdb.py -p https://url/to/feed/ --accept="application/x-protobuf" -d sqlite:///test.db -c`
+```
+
+
 GTFSrDB loads GTFS-realtime data to a database.  
 
 GTFSrDB supports all 3 types of GTFS-realtime feeds:
@@ -12,9 +24,9 @@ GTFSrDB supports all 3 types of GTFS-realtime feeds:
 You can process multiple types of GTFS-realtime feeds in the same execution by using multiple command line options.
 
 GTFSrDB will run and keep a database up-to-date with the latest GTFSr data. It can also be used to
-archive this data for historical or statistical purposes. GTFSrDB is designed to work in tandem 
-with [gtfsdb](http://code.google.com/p/gtfsdb/).  GTFSrDB uses SQLAlchemy, so it should work with 
-most any database system; So far its been used with SQLite, Postgres, and Microsoft SQL Server. 
+archive this data for historical or statistical purposes. GTFSrDB is designed to work in tandem
+with [gtfsdb](http://code.google.com/p/gtfsdb/).  GTFSrDB uses SQLAlchemy, so it should work with
+most any database system; So far its been used with SQLite, Postgres, and Microsoft SQL Server.
 Just specify a database url on the command line with `-d`.
 
 ### Example Use
@@ -27,21 +39,21 @@ Just specify a database url on the command line with `-d`.
 
   b. Using Microsoft SQL Server (note you'll need [pyodbc](https://code.google.com/p/pyodbc/downloads/detail?name=pyodbc-3.0.6.win-amd64-py2.7.exe&can=2&q=)):
 
-    `gtfsrdb.py -t http://www.bart.gov/dev/gtrtfs/tripupdate.aspx -d 
+    `gtfsrdb.py -t http://www.bart.gov/dev/gtrtfs/tripupdate.aspx -d
       mssql+pyodbc://<username>:<password>@<public_database_server_name>/<database_name> -c`
 
    So, if the `username=jdoe`, `password=pswd`, `public_database_server_name=my.public.database.org`, `database_name=gtfsrdb`, the command is:
 
-    `gtfsrdb.py -t http://www.bart.gov/dev/gtrtfs/tripupdate.aspx -d 
+    `gtfsrdb.py -t http://www.bart.gov/dev/gtrtfs/tripupdate.aspx -d
       mssql+pyodbc://jdoe:pswd@my.public.database.org/gtfsrdb -c`
 
 2. Massachusetts Bay Transportation Authority with GTFS-realtime VehiclePositions:
 
   a. Using SQLite:
-  
+
     `gtfsrdb.py -p http://developer.mbta.com/lib/gtrtfs/Vehicles.pb -d sqlite:///test.db -c`
 
-The model for the data is in `model.py`; you should be able to use this 
+The model for the data is in `model.py`; you should be able to use this
 standalone with SQLAlchemy to process the data in Python.
 
 The `-o` command line option instructs GTFSrDB to keep the database up-to-date by
@@ -74,14 +86,14 @@ joined tables):
 * TripUpdate.trip becomes trip_id, route_id, trip_start_time, trip_start_date
 * TripUpdate.vehicle becomes vehicle_id, vehicle_label and
   vehicle_license_plate
-* StopTimeUpdate.arrival becomes arrival_time, arrival_delay & 
+* StopTimeUpdate.arrival becomes arrival_time, arrival_delay &
   arrival_uncertainty
 * StopTimeUpdate.departure becomes departure_time &c.
 * Alert.active_period is condensed to Alert.start and Alert.end; if
   there are multiple active periods, only the first one is stored.
 * All TranslatedStrings are converted to plain strings, using a) the
   language specified with the -l option, b) any untranslated string if
-  a string for the language is not found, or c) the only string in the 
+  a string for the language is not found, or c) the only string in the
   case of a single string in the file.
 * Position.latitude becomes position_latitude
 * Position.longitude becomes position_longitude
@@ -89,7 +101,7 @@ joined tables):
 * Position.speed becomes position_speed
 * VehicleDescriptor.id becomes vehicle_id
 * VehicleDescriptor.label becomes vehicle_label
-* VehicleDescriptor.license_plate becomes vehicle_license_plate 
+* VehicleDescriptor.license_plate becomes vehicle_license_plate
 
 USING IT WITH GTFSDB
 ====================
@@ -106,13 +118,13 @@ are left intact, for joining with the static data. You can't just cast
 the strings to numbers; take a look at BART's stop IDs in the examples
 below).
 
-Here are some example queries (both designed to work with the -o option). Note 
-that the first two are for BART, which embeds stop_ids in GTFSr; other agencies 
-(e.g., TriMet) specify stops as trip_updates.trip_id and 
+Here are some example queries (both designed to work with the -o option). Note
+that the first two are for BART, which embeds stop_ids in GTFSr; other agencies
+(e.g., TriMet) specify stops as trip_updates.trip_id and
 stop_time_updates.stop_sequence; you'll need to use slightly more complex
 queries for those.
 
-This query shows all of the stop time updates that relate cleanly to the stops table. 
+This query shows all of the stop time updates that relate cleanly to the stops table.
 Keep in mind that trips.trip_id = trip_updates.trip_id only works for trips that are not
 frequency-expanded (i.e. multiple trips with the same trip_id)
 
@@ -121,7 +133,7 @@ frequency-expanded (i.e. multiple trips with the same trip_id)
     WHERE trips.trip_id::text = trip_updates.trip_id::text AND trip_updates.oid = stop_time_updates.trip_update_id
     ORDER BY stop_time_updates.stop_id;
 
-    route_id | trip_id |     trip_headsign     | schedule_relationship | stop_id | arrival_delay 
+    route_id | trip_id |     trip_headsign     | schedule_relationship | stop_id | arrival_delay
     ----------+---------+-----------------------+-----------------------+---------+---------------
     04       | 66F1    | FREMONT               | SCHEDULED             | 19TH    |             0
     12       | 67ED1   | EAST DUBLIN           | SCHEDULED             | 24TH    |             0
@@ -152,17 +164,17 @@ frequency-expanded (i.e. multiple trips with the same trip_id)
     11       | 65DCM2  | DALY CITY             | SCHEDULED             | WOAK    |             0
     (27 rows)
 
-This query gives you an overview of the entire BART system, with average delays for each stop 
+This query gives you an overview of the entire BART system, with average delays for each stop
 where trains are predicted.  I may spatially enable this database and make a heatmap of where
 delays are in a given transit system by interpolating between points.
-    
+
     SELECT stops.stop_id, stops.stop_name, stops.stop_lat, stops.stop_lon, avg(stop_time_updates.arrival_delay) AS avg
     FROM stop_time_updates, stops
     WHERE stops.stop_id::text = stop_time_updates.stop_id::text
     GROUP BY stops.stop_id, stops.stop_name, stops.stop_lat, stops.stop_lon
     ORDER BY stops.stop_name;
 
-    stop_id |           stop_name           |   stop_lat   |    stop_lon    |          avg           
+    stop_id |           stop_name           |   stop_lat   |    stop_lon    |          avg
     ---------+-------------------------------+--------------+----------------+------------------------
     BALB    | Balboa Park BART              | 37.721980868 | -122.447414196 | 0.00000000000000000000
     CIVC    | Civic Center/UN Plaza BART    | 37.779605587 | -122.413851084 | 0.00000000000000000000

@@ -29,6 +29,11 @@ with [gtfsdb](http://code.google.com/p/gtfsdb/).  GTFSrDB uses SQLAlchemy, so it
 most any database system; So far its been used with SQLite, Postgres, and Microsoft SQL Server.
 Just specify a database url on the command line with `-d`.
 
+### Changes from `mattwigway/gtfsrdb`
+
+- When saving vehicle positions, the `timestamp` is now the timestamp of the 'measurement', not the request (i.e., `feed.vehicle.timestamp` rather than `header.timestamp`.
+
+
 ### Example Use
 
 1. Bay Area Rapid Transit with GTFS-realtime TripUpdates:

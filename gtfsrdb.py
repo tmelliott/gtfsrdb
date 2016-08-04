@@ -29,6 +29,8 @@ import datetime
 import urllib2
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+import httplib, urllib, base64
+import json
 from urllib2 import urlopen
 from model import *
 
@@ -65,6 +67,9 @@ p.add_option('-1', '--once',  default=False, dest='once', action='store_true',
              help='only run the loader one time')
 
 p.add_option('--accept', default=None, dest="accept",
+             help="Optional accept header")
+
+p.add_option('--key', default=None, dest="key",
              help="Optional accept header")
 
 opts, args = p.parse_args()
@@ -132,10 +137,24 @@ try:
 
             if opts.tripUpdates:
                 fm = gtfs_realtime_pb2.FeedMessage()
-                fm.ParseFromString(
-                    urlopen(opts.tripUpdates).read()
-                    )
+                #
+                # request = urllib2.Request(opts.vehiclePositions, headers={ "Accept" : opts.accept, "Ocp-Apim-Subscription-Key" : opts.key })
+                #
 
+                headers = {
+                    # Request headers
+                    'Ocp-Apim-Subscription-Key': opts.key,
+                    'Accept': opts.accept
+                }
+
+                conn = httplib.HTTPSConnection('api.at.govt.nz')
+                conn.request("GET", "/v2/public/realtime/tripupdates", "", headers)
+                response = conn.getresponse()
+
+                fm.ParseFromString(response)
+                    #urlopen(request).read()
+                    #)
+                print(fm)
                 # Convert this a Python object, and save it to be placed into each
                 # trip_update
                 timestamp = datetime.datetime.utcfromtimestamp(fm.header.timestamp)
@@ -164,7 +183,7 @@ try:
                         vehicle_id = tu.vehicle.id,
                         vehicle_label = tu.vehicle.label,
                         vehicle_license_plate = tu.vehicle.license_plate,
-                        timestamp = timestamp)
+                        timestamp = tu.timestamp)
 
                     for stu in tu.stop_time_update:
                         dbstu = StopTimeUpdate(
@@ -225,46 +244,107 @@ try:
                                 trip_start_date = ie.trip.start_date)
                             session.add(dbie)
                             dbalert.InformedEntities.append(dbie)
+
+
             if opts.vehiclePositions:
-                fm = gtfs_realtime_pb2.FeedMessage()
-                if opts.accept:
-                    request = urllib2.Request(opts.vehiclePositions, headers={ "Accept" : opts.accept })
-                else:
-                    request = opts.vehiclePositions
+                # fm = gtfs_realtime_pb2.FeedMessage()
 
-                fm.ParseFromString(
-                    urlopen(request).read()
-                    )
+                headers = {
+                    # Request headers
+                    'Ocp-Apim-Subscription-Key': opts.key,
+                    #'Accept': opts.accept
+                }
 
+                conn = httplib.HTTPSConnection('api.at.govt.nz')
+                conn.request("GET", "/v2/public/realtime", "", headers)
+                response = conn.getresponse()
+                data = json.loads(response.read())
+
+                # if opts.accept:
+                #     if opts.key:
+                #         request = urllib2.Request(opts.vehiclePositions, headers={ "Accept" : opts.accept, "Ocp-Apim-Subscription-Key" : opts.key })
+                #     else:
+                #         request = urllib2.Request(opts.vehiclePositions, headers={ "Accept" : opts.accept })
+                # else:
+                #     if opts.key:
+                #         request = urllib2.Request(opts.vehiclePositions, headers={  "Ocp-Apim-Subscription-Key" : opts.key })
+                #     else:
+                #         request = opts.vehiclePositions
+                #
+                # fm.ParseFromString(
+                #     urlopen(request).read()
+                #     )
+
+
+                fm = data['response']
                 # Convert this a Python object, and save it to be placed into each
                 # vehicle_position
-                timestamp = datetime.datetime.utcfromtimestamp(fm.header.timestamp)
+                # timestamp = datetime.datetime.utcfromtimestamp(fm.header.timestamp)
+                timestamp = datetime.datetime.utcfromtimestamp(fm['header']['timestamp'])
 
                 # Check the feed version
-                if fm.header.gtfs_realtime_version != u'1.0':
-                    print 'Warning: feed version has changed: found %s, expected 1.0' % fm.header.gtfs_realtime_version
+                if fm['header']['gtfs_realtime_version'] != u'1.0':
+                    print 'Warning: feed version has changed: found %s, expected 1.0' % fm['header']['gtfs_realtime_version']
 
-                print 'Adding %s vehicle_positions' % len(fm.entity)
-                for entity in fm.entity:
+                # print 'Adding %s vehicle_positions' % len(fm['entity'])
+                print 'Adding %s records' % len(fm['entity'])
+                for entity in fm['entity']:
+                    if 'vehicle' in entity:
+                        vp = entity['vehicle']
 
-                    vp = entity.vehicle
+                        ## Instead of using the REQUEST timestamp, it seems more important to store the timestamp of the MEASUREMENT
+                        dbvp = VehiclePosition(
+                            trip_id = vp['trip']['trip_id'],
+                            route_id = vp['trip']['route_id'],
+                            trip_start_time = vp['trip']['start_time'],
+                            trip_start_date = vp['trip']['start_date'] if 'start_date' in vp['trip'] else None,
+                            vehicle_id = vp['vehicle']['id'],
+                            vehicle_label = vp['vehicle']['label'] if 'label' in vp['vehicle'] else None,
+                            vehicle_license_plate = vp['vehicle']['license_plate'] if 'license_place' in vp['vehicle'] else None,
+                            position_latitude = vp['position']['latitude'],
+                            position_longitude = vp['position']['longitude'],
+                            position_bearing = vp['position']['bearing'] if 'bearing' in vp['position'] else None,
+                            position_speed = vp['position']['speed'] if 'speed' in vp['position'] else None,
+                            timestamp = vp['timestamp'])
 
-                    ## Instead of using the REQUEST timestamp, it seems more important to store the timestamp of the MEASUREMENT
-                    dbvp = VehiclePosition(
-                        trip_id = vp.trip.trip_id,
-                        route_id = vp.trip.route_id,
-                        trip_start_time = vp.trip.start_time,
-                        trip_start_date = vp.trip.start_date,
-                        vehicle_id = vp.vehicle.id,
-                        vehicle_label = vp.vehicle.label,
-                        vehicle_license_plate = vp.vehicle.license_plate,
-                        position_latitude = vp.position.latitude,
-                        position_longitude = vp.position.longitude,
-                        position_bearing = vp.position.bearing,
-                        position_speed = vp.position.speed,
-                        timestamp = vp.timestamp)
+                        session.add(dbvp)
 
-                    session.add(dbvp)
+                    # if 'trip_update' in entity:
+                    #     tu = entity['trip_update']
+                    #
+                    #     dbtu = TripUpdate(
+                    #         trip_id = tu['trip']['trip_id'],
+                    #         route_id = tu['trip']['route_id'],
+                    #         trip_start_time = tu['trip']['start_time'] if 'trip_start_time' in tu['trip'] else None,
+                    #         trip_start_date = tu['trip']['start_date'] if 'trip_start_date' in tu['trip'] else None,
+                    #
+                    #         # get the schedule relationship
+                    #         # This is somewhat undocumented, but by referencing the
+                    #         # DESCRIPTOR.enum_types_by_name, you get a dict of enum types
+                    #         # as described at http://code.google.com/apis/protocolbuffers/docs/reference/python/google.protobuf.descriptor.EnumDescriptor-class.html
+                    #         schedule_relationship = None, # tu.trip.DESCRIPTOR.enum_types_by_name['ScheduleRelationship'].values_by_number[tu.trip.schedule_relationship].name,
+                    #
+                    #         vehicle_id = tu['vehicle']['id'],
+                    #         vehicle_label = tu['vehicle']['label'] if 'label' in tu['vehicle'] else None,
+                    #         vehicle_license_plate = tu['vehicle']['license_plate'] if 'license_plate' in tu['vehicle'] else None,
+                    #         timestamp = tu['timestamp'])
+                    #
+                    #     for stu in tu['stop_time_update']:
+                    #         dbstu = StopTimeUpdate(
+                    #             stop_sequence = stu['stop_sequence'],
+                    #             stop_id = stu['stop_id'],
+                    #             arrival_delay = stu['arrival']['delay'] if 'arrival' in stu else None,
+                    #             arrival_time = stu['arrival']['time'] if 'arrival' in stu else None,
+                    #             arrival_uncertainty = None, #stu.arrival.uncertainty,
+                    #             departure_delay = stu['departure']['delay'] if 'departure' in stu else None,
+                    #             departure_time = stu['departure']['time'] if 'departure' in stu else None,
+                    #             departure_uncertainty = None, #stu.departure.uncertainty,
+                    #             schedule_relationship = None, # tu.trip.DESCRIPTOR.enum_types_by_name['ScheduleRelationship'].values_by_number[tu.trip.schedule_relationship].name
+                    #             )
+                    #     #     session.add(dbstu)
+                    #     #     dbtu.StopTimeUpdates.append(dbstu)
+                    #     #
+                    #     # session.add(dbtu)
 
             # This does deletes and adds, since it's atomic it never leaves us
             # without data

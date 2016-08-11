@@ -136,6 +136,7 @@ try:
                         session.delete(obj)
 
             if opts.tripUpdates:
+                print "Trip Updates ..."
                 fm = gtfs_realtime_pb2.FeedMessage()
                 #
                 # request = urllib2.Request(opts.vehiclePositions, headers={ "Accept" : opts.accept, "Ocp-Apim-Subscription-Key" : opts.key })
@@ -203,6 +204,7 @@ try:
                     session.add(dbtu)
 
             if opts.alerts:
+                print "Alerts ..."
                 fm = gtfs_realtime_pb2.FeedMessage()
                 fm.ParseFromString(
                     urlopen(opts.alerts).read()
@@ -260,26 +262,7 @@ try:
                 response = conn.getresponse()
                 data = json.loads(response.read())
 
-                # if opts.accept:
-                #     if opts.key:
-                #         request = urllib2.Request(opts.vehiclePositions, headers={ "Accept" : opts.accept, "Ocp-Apim-Subscription-Key" : opts.key })
-                #     else:
-                #         request = urllib2.Request(opts.vehiclePositions, headers={ "Accept" : opts.accept })
-                # else:
-                #     if opts.key:
-                #         request = urllib2.Request(opts.vehiclePositions, headers={  "Ocp-Apim-Subscription-Key" : opts.key })
-                #     else:
-                #         request = opts.vehiclePositions
-                #
-                # fm.ParseFromString(
-                #     urlopen(request).read()
-                #     )
-
-
                 fm = data['response']
-                # Convert this a Python object, and save it to be placed into each
-                # vehicle_position
-                # timestamp = datetime.datetime.utcfromtimestamp(fm.header.timestamp)
                 timestamp = datetime.datetime.utcfromtimestamp(fm['header']['timestamp'])
 
                 # Check the feed version
@@ -305,46 +288,48 @@ try:
                             position_longitude = vp['position']['longitude'],
                             position_bearing = vp['position']['bearing'] if 'bearing' in vp['position'] else None,
                             position_speed = vp['position']['speed'] if 'speed' in vp['position'] else None,
-                            timestamp = vp['timestamp'])
+                            timestamp = datetime.datetime.utcfromtimestamp(vp['timestamp']))
 
                         session.add(dbvp)
 
-                    # if 'trip_update' in entity:
-                    #     tu = entity['trip_update']
-                    #
-                    #     dbtu = TripUpdate(
-                    #         trip_id = tu['trip']['trip_id'],
-                    #         route_id = tu['trip']['route_id'],
-                    #         trip_start_time = tu['trip']['start_time'] if 'trip_start_time' in tu['trip'] else None,
-                    #         trip_start_date = tu['trip']['start_date'] if 'trip_start_date' in tu['trip'] else None,
-                    #
-                    #         # get the schedule relationship
-                    #         # This is somewhat undocumented, but by referencing the
-                    #         # DESCRIPTOR.enum_types_by_name, you get a dict of enum types
-                    #         # as described at http://code.google.com/apis/protocolbuffers/docs/reference/python/google.protobuf.descriptor.EnumDescriptor-class.html
-                    #         schedule_relationship = None, # tu.trip.DESCRIPTOR.enum_types_by_name['ScheduleRelationship'].values_by_number[tu.trip.schedule_relationship].name,
-                    #
-                    #         vehicle_id = tu['vehicle']['id'],
-                    #         vehicle_label = tu['vehicle']['label'] if 'label' in tu['vehicle'] else None,
-                    #         vehicle_license_plate = tu['vehicle']['license_plate'] if 'license_plate' in tu['vehicle'] else None,
-                    #         timestamp = tu['timestamp'])
-                    #
-                    #     for stu in tu['stop_time_update']:
-                    #         dbstu = StopTimeUpdate(
-                    #             stop_sequence = stu['stop_sequence'],
-                    #             stop_id = stu['stop_id'],
-                    #             arrival_delay = stu['arrival']['delay'] if 'arrival' in stu else None,
-                    #             arrival_time = stu['arrival']['time'] if 'arrival' in stu else None,
-                    #             arrival_uncertainty = None, #stu.arrival.uncertainty,
-                    #             departure_delay = stu['departure']['delay'] if 'departure' in stu else None,
-                    #             departure_time = stu['departure']['time'] if 'departure' in stu else None,
-                    #             departure_uncertainty = None, #stu.departure.uncertainty,
-                    #             schedule_relationship = None, # tu.trip.DESCRIPTOR.enum_types_by_name['ScheduleRelationship'].values_by_number[tu.trip.schedule_relationship].name
-                    #             )
-                    #     #     session.add(dbstu)
-                    #     #     dbtu.StopTimeUpdates.append(dbstu)
-                    #     #
-                    #     # session.add(dbtu)
+                    if 'trip_update' in entity:
+                        tu = entity['trip_update']
+
+                        dbtu = TripUpdate(
+                            trip_id = tu['trip']['trip_id'],
+                            route_id = tu['trip']['route_id'],
+                            trip_start_time = tu['trip']['start_time'] if 'trip_start_time' in tu['trip'] else None,
+                            trip_start_date = tu['trip']['start_date'] if 'trip_start_date' in tu['trip'] else None,
+
+                            # get the schedule relationship
+                            # This is somewhat undocumented, but by referencing the
+                            # DESCRIPTOR.enum_types_by_name, you get a dict of enum types
+                            # as described at http://code.google.com/apis/protocolbuffers/docs/reference/python/google.protobuf.descriptor.EnumDescriptor-class.html
+                            schedule_relationship = None, # tu.trip.DESCRIPTOR.enum_types_by_name['ScheduleRelationship'].values_by_number[tu.trip.schedule_relationship].name,
+
+                            vehicle_id = tu['vehicle']['id'],
+                            vehicle_label = tu['vehicle']['label'] if 'label' in tu['vehicle'] else None,
+                            vehicle_license_plate = tu['vehicle']['license_plate'] if 'license_plate' in tu['vehicle'] else None,
+                            timestamp = datetime.datetime.utcfromtimestamp(tu['timestamp']))
+
+                        # for stu in tu['stop_time_update']:
+                        if tu['stop_time_update']:
+                            stu = tu['stop_time_update']
+                            dbstu = StopTimeUpdate(
+                                stop_sequence = stu['stop_sequence'],
+                                stop_id = stu['stop_id'],
+                                arrival_delay = stu['arrival']['delay'] if 'arrival' in stu else None,
+                                arrival_time = stu['arrival']['time'] if 'arrival' in stu else None,
+                                arrival_uncertainty = None, #stu.arrival.uncertainty,
+                                departure_delay = stu['departure']['delay'] if 'departure' in stu else None,
+                                departure_time = stu['departure']['time'] if 'departure' in stu else None,
+                                departure_uncertainty = None, #stu.departure.uncertainty,
+                                schedule_relationship = None, # tu.trip.DESCRIPTOR.enum_types_by_name['ScheduleRelationship'].values_by_number[tu.trip.schedule_relationship].name
+                                )
+                            session.add(dbstu)
+                            dbtu.StopTimeUpdates.append(dbstu)
+
+                        session.add(dbtu)
 
             # This does deletes and adds, since it's atomic it never leaves us
             # without data

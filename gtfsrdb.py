@@ -21,7 +21,7 @@
 # Authors:
 # Matt Conway: main code
 
-import gtfs_realtime_pb2
+from google.transit import gtfs_realtime_pb2
 from optparse import OptionParser
 import time
 import sys
@@ -175,7 +175,7 @@ try:
                         vehicle_id = tu.vehicle.id,
                         vehicle_label = tu.vehicle.label,
                         vehicle_license_plate = tu.vehicle.license_plate,
-                        timestamp = fm.header.timestamp)
+                        timestamp = tu.timestamp)
 
                     for stu in tu.stop_time_update:
                         dbstu = StopTimeUpdate(
@@ -193,7 +193,6 @@ try:
                         dbtu.StopTimeUpdates.append(dbstu)
 
                     session.add(dbtu)
-                    print "==============================="
 
             if opts.alerts:
                 fm = gtfs_realtime_pb2.FeedMessage()

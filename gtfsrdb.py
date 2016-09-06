@@ -29,6 +29,7 @@ import datetime
 import urllib2
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+# import httplib, urllib, base64
 from urllib2 import urlopen
 from model import *
 
@@ -65,6 +66,9 @@ p.add_option('-1', '--once',  default=False, dest='once', action='store_true',
              help='only run the loader one time')
 
 p.add_option('--accept', default=None, dest="accept",
+             help="Optional accept header")
+
+p.add_option('--key', default=None, dest="key",
              help="Optional accept header")
 
 opts, args = p.parse_args()
@@ -132,9 +136,16 @@ try:
 
             if opts.tripUpdates:
                 fm = gtfs_realtime_pb2.FeedMessage()
+                headers = {
+                    'Ocp-Apim-Subscription-Key': opts.key,
+                    'Accept': opts.accept
+                }
+
+                request = urllib2.Request(opts.tripUpdates, headers=headers)
+
                 fm.ParseFromString(
-                    urlopen(opts.tripUpdates).read()
-                    )
+                    urlopen(request).read()
+                )
 
                 # Convert this a Python object, and save it to be placed into each
                 # trip_update
@@ -164,7 +175,7 @@ try:
                         vehicle_id = tu.vehicle.id,
                         vehicle_label = tu.vehicle.label,
                         vehicle_license_plate = tu.vehicle.license_plate,
-                        timestamp = timestamp)
+                        timestamp = fm.header.timestamp)
 
                     for stu in tu.stop_time_update:
                         dbstu = StopTimeUpdate(
@@ -182,12 +193,21 @@ try:
                         dbtu.StopTimeUpdates.append(dbstu)
 
                     session.add(dbtu)
+                    print "==============================="
 
             if opts.alerts:
                 fm = gtfs_realtime_pb2.FeedMessage()
+
+                headers = {
+                    'Ocp-Apim-Subscription-Key': opts.key,
+                    'Accept': opts.accept
+                }
+
+                request = urllib2.Request(opts.alerts, headers=headers)
+
                 fm.ParseFromString(
-                    urlopen(opts.alerts).read()
-                    )
+                    urlopen(request).read()
+                )
 
                 # Convert this a Python object, and save it to be placed into each
                 # trip_update
@@ -225,16 +245,20 @@ try:
                                 trip_start_date = ie.trip.start_date)
                             session.add(dbie)
                             dbalert.InformedEntities.append(dbie)
+
             if opts.vehiclePositions:
                 fm = gtfs_realtime_pb2.FeedMessage()
-                if opts.accept:
-                    request = urllib2.Request(opts.vehiclePositions, headers={ "Accept" : opts.accept })
-                else:
-                    request = opts.vehiclePositions
+
+                headers = {
+                    'Ocp-Apim-Subscription-Key': opts.key,
+                    'Accept': opts.accept
+                }
+
+                request = urllib2.Request(opts.vehiclePositions, headers=headers)
 
                 fm.ParseFromString(
                     urlopen(request).read()
-                    )
+                )
 
                 # Convert this a Python object, and save it to be placed into each
                 # vehicle_position

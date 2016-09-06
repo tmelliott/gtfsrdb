@@ -48,8 +48,8 @@ class TripUpdate(Base):
 
     # This replaces the TripDescriptor message
     # TODO: figure out the relations
-    trip_id = Column(String(10))
-    route_id = Column(String(10))
+    trip_id = Column(String(55))
+    route_id = Column(String(55))
     trip_start_time = Column(String(8))
     trip_start_date = Column(String(10))
     # Put in the string value not the enum
@@ -62,7 +62,7 @@ class TripUpdate(Base):
     vehicle_license_plate = Column(String(10))
 
     # moved from the header, and reformatted as datetime
-    timestamp = Column(DateTime)
+    timestamp = Column(BigInteger)
 
     StopTimeUpdates = relationship('StopTimeUpdate', backref='TripUpdate')
 
@@ -102,8 +102,8 @@ class Alert(Base):
     end = Column(Integer)
 
     # Add domain
-    cause = Column(String(20))
-    effect = Column(String(20))
+    cause = Column(String(55))
+    effect = Column(String(55))
 
     url = Column(String(300))
     header_text = Column(String(80))
@@ -115,14 +115,14 @@ class EntitySelector(Base):
     __tablename__ = 'entity_selectors'
     oid = Column(Integer, primary_key=True)
 
-    agency_id = Column(String(15))
-    route_id = Column(String(10))
+    agency_id = Column(String(55))
+    route_id = Column(String(55))
     route_type = Column(Integer)
-    stop_id = Column(String(10))
+    stop_id = Column(String(55))
 
     # Collapsed TripDescriptor
-    trip_id = Column(String(10))
-    trip_route_id = Column(String(10))
+    trip_id = Column(String(55))
+    trip_route_id = Column(String(55))
     trip_start_time = Column(String(8))
     trip_start_date = Column(String(10))
 
@@ -134,8 +134,8 @@ class VehiclePosition(Base):
 
     # This replaces the TripDescriptor message
     # TODO: figure out the relations
-    trip_id = Column(String(10))
-    route_id = Column(String(10))
+    trip_id = Column(String(55))
+    route_id = Column(String(55))
     trip_start_time = Column(String(8))
     trip_start_date = Column(String(10))
 

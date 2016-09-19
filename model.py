@@ -85,7 +85,7 @@ class StopTimeUpdate(Base):
     departure_uncertainty = Column(Integer)
 
     # TODO: Add domain
-    schedule_relationship = Column(String(9))
+    schedule_relationship = Column(Integer) #String(9))
 
     # Link it to the TripUpdate
     trip_update_id = Column(Integer, ForeignKey('trip_updates.oid'))

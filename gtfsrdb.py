@@ -170,7 +170,7 @@ try:
                         # This is somewhat undocumented, but by referencing the
                         # DESCRIPTOR.enum_types_by_name, you get a dict of enum types
                         # as described at http://code.google.com/apis/protocolbuffers/docs/reference/python/google.protobuf.descriptor.EnumDescriptor-class.html
-                        schedule_relationship = tu.trip.DESCRIPTOR.enum_types_by_name['ScheduleRelationship'].values_by_number[tu.trip.schedule_relationship].name,
+                        schedule_relationship = tu.trip.schedule_relationship,
 
                         vehicle_id = tu.vehicle.id,
                         vehicle_label = tu.vehicle.label,
@@ -187,7 +187,7 @@ try:
                             departure_delay = stu.departure.delay,
                             departure_time = stu.departure.time,
                             departure_uncertainty = stu.departure.uncertainty,
-                            schedule_relationship = tu.trip.DESCRIPTOR.enum_types_by_name['ScheduleRelationship'].values_by_number[tu.trip.schedule_relationship].name
+                            schedule_relationship = tu.trip.schedule_relationship
                             )
                         session.add(dbstu)
                         dbtu.StopTimeUpdates.append(dbstu)

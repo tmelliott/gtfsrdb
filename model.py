@@ -54,7 +54,7 @@ class TripUpdate(Base):
     trip_start_date = Column(String(10))
     # Put in the string value not the enum
     # TODO: add a domain
-    schedule_relationship = Column(String(9))
+    schedule_relationship = Column(Integer) #String(9))
 
     # Collapsed VehicleDescriptor
     vehicle_id = Column(String(10))
@@ -76,16 +76,16 @@ class StopTimeUpdate(Base):
 
     # Collapsed StopTimeEvent
     arrival_delay = Column(Integer)
-    arrival_time = Column(Integer)
+    arrival_time = Column(BigInteger)
     arrival_uncertainty = Column(Integer)
 
     # Collapsed StopTimeEvent
     departure_delay = Column(Integer)
-    departure_time = Column(Integer)
+    departure_time = Column(BigInteger)
     departure_uncertainty = Column(Integer)
 
     # TODO: Add domain
-    schedule_relationship = Column(Integer) #String(9))
+    schedule_relationship = Column(Integer)
 
     # Link it to the TripUpdate
     trip_update_id = Column(Integer, ForeignKey('trip_updates.oid'))

@@ -178,17 +178,19 @@ try:
                         timestamp = tu.timestamp)
 
                     for stu in tu.stop_time_update:
+                        print str(stu.arrival.delay) + " - " + str(stu.departure.delay)
                         dbstu = StopTimeUpdate(
                             stop_sequence = stu.stop_sequence,
                             stop_id = stu.stop_id,
                             arrival_delay = stu.arrival.delay,
-                            arrival_time = stu.arrival.time,
-                            arrival_uncertainty = stu.arrival.uncertainty,
-                            departure_delay = stu.departure.delay,
-                            departure_time = stu.departure.time,
-                            departure_uncertainty = stu.departure.uncertainty,
-                            schedule_relationship = tu.trip.schedule_relationship
+                            # arrival_time = stu.arrival.time,
+                            # arrival_uncertainty = stu.arrival.uncertainty,
+                            # departure_delay = stu.departure.delay,
+                            # departure_time = stu.departure.time,
+                            # departure_uncertainty = stu.departure.uncertainty,
+                            # schedule_relationship = tu.trip.schedule_relationship
                             )
+
                         session.add(dbstu)
                         dbtu.StopTimeUpdates.append(dbstu)
 

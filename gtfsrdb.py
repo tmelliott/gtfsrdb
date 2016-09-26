@@ -182,13 +182,13 @@ try:
                         dbstu = StopTimeUpdate(
                             stop_sequence = stu.stop_sequence,
                             stop_id = stu.stop_id,
-                            arrival_delay = stu.arrival.delay,
-                            # arrival_time = stu.arrival.time,
-                            # arrival_uncertainty = stu.arrival.uncertainty,
-                            # departure_delay = stu.departure.delay,
-                            # departure_time = stu.departure.time,
-                            # departure_uncertainty = stu.departure.uncertainty,
-                            # schedule_relationship = tu.trip.schedule_relationship
+                            arrival_delay = stu.arrival.delay if (stu.arrival.delay < 2^31) else stu.arrival.delay - 2^32,
+                            arrival_time = stu.arrival.time,
+                            arrival_uncertainty = stu.arrival.uncertainty,
+                            departure_delay = stu.departure.delay if (stu.departure.delay < 2^31) else stu.departure.delay - 2^32,
+                            departure_time = stu.departure.time,
+                            departure_uncertainty = stu.departure.uncertainty,
+                            schedule_relationship = tu.trip.schedule_relationship
                             )
 
                         session.add(dbstu)

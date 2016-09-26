@@ -178,14 +178,13 @@ try:
                         timestamp = tu.timestamp)
 
                     for stu in tu.stop_time_update:
-                        print str(stu.arrival.delay) + " - " + str(stu.departure.delay)
                         dbstu = StopTimeUpdate(
                             stop_sequence = stu.stop_sequence,
                             stop_id = stu.stop_id,
-                            arrival_delay = stu.arrival.delay if (stu.arrival.delay < 2^31) else stu.arrival.delay - 2^32,
+                            arrival_delay = stu.arrival.delay if (stu.arrival.delay < pow(2, 31)) else stu.arrival.delay - pow(2, 32),
                             arrival_time = stu.arrival.time,
                             arrival_uncertainty = stu.arrival.uncertainty,
-                            departure_delay = stu.departure.delay if (stu.departure.delay < 2^31) else stu.departure.delay - 2^32,
+                            departure_delay = stu.departure.delay if (stu.departure.delay < pow(2, 31)) else stu.departure.delay - pow(2, 32),
                             departure_time = stu.departure.time,
                             departure_uncertainty = stu.departure.uncertainty,
                             schedule_relationship = tu.trip.schedule_relationship

@@ -277,7 +277,7 @@ try:
                     dbvp = VehiclePosition(
                         trip_id = vp.trip.trip_id,
                         route_id = vp.trip.route_id,
-                        # trip_start_time = vp.trip.start_time,
+                        trip_start_time = vp.trip.start_time,
                         # trip_start_date = vp.trip.start_date,
                         # vehicle_id = vp.vehicle.id,
                         # vehicle_label = vp.vehicle.label,

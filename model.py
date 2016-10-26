@@ -57,9 +57,9 @@ class TripUpdate(Base):
     schedule_relationship = Column(Integer) #String(9))
 
     # Collapsed VehicleDescriptor
-    vehicle_id = Column(String(10))
-    vehicle_label = Column(String(15))
-    vehicle_license_plate = Column(String(10))
+    vehicle_id = Column(String(30))
+    vehicle_label = Column(String(30))
+    vehicle_license_plate = Column(String(30))
 
     # moved from the header, and reformatted as datetime
     timestamp = Column(BigInteger)
@@ -72,7 +72,7 @@ class StopTimeUpdate(Base):
 
     # TODO: Fill one from the other
     stop_sequence = Column(Integer)
-    stop_id = Column(String(10))
+    stop_id = Column(String(30))
 
     # Collapsed StopTimeEvent
     arrival_delay = Column(Integer)
@@ -140,9 +140,9 @@ class VehiclePosition(Base):
     trip_start_date = Column(String(10))
 
     # Collapsed VehicleDescriptor
-    vehicle_id = Column(String(10))
-    vehicle_label = Column(String(15))
-    vehicle_license_plate = Column(String(10))
+    vehicle_id = Column(String(30))
+    vehicle_label = Column(String(30))
+    vehicle_license_plate = Column(String(30))
 
     # Collapsed Position
     position_latitude = Column(Float)

@@ -274,6 +274,7 @@ try:
                     vp = entity.vehicle
 
                     ## Instead of using the REQUEST timestamp, it seems more important to store the timestamp of the MEASUREMENT
+                    print vp.vehicle_id
                     dbvp = VehiclePosition(
                         trip_id = vp.trip.trip_id,
                         route_id = vp.trip.route_id,

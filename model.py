@@ -140,7 +140,7 @@ class VehiclePosition(Base):
     trip_start_date = Column(String(10))
 
     # Collapsed VehicleDescriptor
-    vehicle_id = Column(String(55))
+    vehicle_id = Column(String(30))
     vehicle_label = Column(String(30))
     vehicle_license_plate = Column(String(30))
 
